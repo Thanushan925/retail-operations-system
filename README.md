@@ -1,1 +1,1 @@
-# retail-operations-system
+# Retail Operations System
