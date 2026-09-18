@@ -35,3 +35,54 @@ app.get("/api/db-test", async (req, res) => {
     });
   }
 });
+
+app.get("/api/products", async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        id,
+        name,
+        sku,
+        category,
+        price
+      FROM products
+      ORDER BY id;
+    `);
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      status: "error",
+      message: "Failed to fetch products.",
+    });
+  }
+});
+
+app.get("/api/inventory", async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        stores.name AS store,
+        products.name AS product,
+        products.sku,
+        products.category,
+        inventory.quantity,
+        products.price
+      FROM inventory
+      JOIN stores ON inventory.store_id = stores.id
+      JOIN products ON inventory.product_id = products.id
+      ORDER BY stores.name, products.name;
+    `);
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      status: "error",
+      message: "Failed to fetch inventory.",
+    });
+  }
+});
