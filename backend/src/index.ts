@@ -40,13 +40,15 @@ app.get("/api/products", async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT
-        id,
-        name,
-        sku,
-        category,
-        price
+        products.id,
+        products.name,
+        products.sku,
+        products.category,
+        products.price,
+        suppliers.name AS supplier
       FROM products
-      ORDER BY id;
+      JOIN suppliers ON products.supplier_id = suppliers.id
+      ORDER BY products.id;
     `);
 
     res.json(result.rows);
@@ -65,6 +67,7 @@ app.get("/api/inventory", async (req, res) => {
     const result = await pool.query(`
       SELECT
         stores.name AS store,
+        suppliers.name AS supplier,
         products.name AS product,
         products.sku,
         products.category,
@@ -73,6 +76,7 @@ app.get("/api/inventory", async (req, res) => {
       FROM inventory
       JOIN stores ON inventory.store_id = stores.id
       JOIN products ON inventory.product_id = products.id
+      JOIN suppliers ON products.supplier_id = suppliers.id
       ORDER BY stores.name, products.name;
     `);
 
