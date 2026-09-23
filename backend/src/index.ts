@@ -90,3 +90,28 @@ app.get("/api/inventory", async (req, res) => {
     });
   }
 });
+
+app.get("/api/users", async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        users.id,
+        users.name,
+        users.email,
+        users.role,
+        stores.name AS store
+      FROM users
+      LEFT JOIN stores ON users.store_id = stores.id
+      ORDER BY users.id;
+    `);
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      status: "error",
+      message: "Failed to fetch users.",
+    });
+  }
+});

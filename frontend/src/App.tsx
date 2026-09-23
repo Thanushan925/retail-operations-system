@@ -9,9 +9,19 @@ type InventoryItem = {
   price: string;
 };
 
+type User = {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  store: string | null;
+};
+
 function App() {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [users, setUsers] = useState<User[]>([]);
+  const [usersLoading, setUsersLoading] = useState(true);
 
   useEffect(() => {
     fetch("http://localhost:3000/api/inventory")
@@ -22,6 +32,18 @@ function App() {
       })
       .catch(() => {
         setLoading(false);
+      });
+  }, []);
+
+  useEffect(() => {
+    fetch("http://localhost:3000/api/users")
+      .then((response) => response.json())
+      .then((data) => {
+        setUsers(data);
+        setUsersLoading(false);
+      })
+      .catch(() => {
+        setUsersLoading(false);
       });
   }, []);
 
@@ -61,6 +83,34 @@ function App() {
             </tbody>
           </table>
         </ul>
+      )}
+
+      <h2>Users</h2>
+
+      {usersLoading ? (
+        <p>Loading users...</p>
+      ) : (
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Store</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {users.map((user) => (
+              <tr key={user.id}>
+                <td>{user.name}</td>
+                <td>{user.email}</td>
+                <td>{user.role}</td>
+                <td>{user.store ?? "All Stores"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       )}
     </main>
   );
