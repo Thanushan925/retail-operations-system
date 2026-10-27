@@ -1,11 +1,13 @@
 import express from "express";
 import cors from "cors";
 import pool from "./db";
+import bcrypt from "bcrypt";
 
 const app = express();
 const PORT = 3000;
 
 app.use(cors());
+app.use(express.json());
 
 app.get("/api/health", (req, res) => {
   res.json({
@@ -112,6 +114,67 @@ app.get("/api/users", async (req, res) => {
     res.status(500).json({
       status: "error",
       message: "Failed to fetch users.",
+    });
+  }
+});
+
+app.post("/api/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const result = await pool.query(
+      `
+      SELECT
+        id,
+        name,
+        email,
+        password_hash,
+        role,
+        store_id
+      FROM users
+      WHERE email = $1;
+      `,
+      [email]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(401).json({
+        status: "error",
+        message: "Invalid email or password.",
+      });
+    }
+
+    const user = result.rows[0];
+
+    const passwordMatches = await bcrypt.compare(
+      password,
+      user.password_hash
+    );
+
+    if (!passwordMatches) {
+      return res.status(401).json({
+        status: "error",
+        message: "Invalid email or password.",
+      });
+    }
+
+    res.json({
+      status: "ok",
+      message: "Login successful.",
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        store_id: user.store_id,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      status: "error",
+      message: "Login failed.",
     });
   }
 });
